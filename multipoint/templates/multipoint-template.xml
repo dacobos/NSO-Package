@@ -1,0 +1,98 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <name>{$originNode}</name>
+      <config>
+      <interface xmlns="http://tail-f.com/ned/cisco-ios-xr">
+       <GigabitEthernet-subinterface>
+         <GigabitEthernet>
+           <id>{$localInterface}</id>
+           <mode>l2transport</mode>
+           <encapsulation>
+             <dot1q>
+               <vlan-id>{$vlanID}</vlan-id>
+             </dot1q>
+           </encapsulation>
+           <rewrite>
+             <ingress>
+               <tag>
+                 <pop>1</pop>
+                 <mode>symmetric</mode>
+               </tag>
+             </ingress>
+           </rewrite>
+         </GigabitEthernet>
+       </GigabitEthernet-subinterface>
+     </interface>
+
+        <l2vpn xmlns="http://tail-f.com/ned/cisco-ios-xr" tags="merge">
+          <pw-class>
+            <name>MPLS</name>
+          </pw-class>
+          <bridge>
+            <group>
+              <group-name>CarrierEthernet</group-name>
+              <bridge-domain>
+                <bridge-domain-name>{$vplsID}</bridge-domain-name>
+                <neighbor>
+                  <address>{$destinationNodeIP}</address>
+                  <pw-id>{$pwID}</pw-id>
+                  <pw-class>MPLS</pw-class>
+                </neighbor>
+              </bridge-domain>
+            </group>
+          </bridge>
+        </l2vpn>
+        </config>
+      </device>
+
+    <device>
+      <name>{$destinationNode}</name>
+      <config>
+      <interface xmlns="http://tail-f.com/ned/cisco-ios-xr">
+       <GigabitEthernet-subinterface>
+         <GigabitEthernet>
+           <id>{$remoteInterface}</id>
+           <mode>l2transport</mode>
+           <encapsulation>
+             <dot1q>
+               <vlan-id>{$vlanID}</vlan-id>
+             </dot1q>
+           </encapsulation>
+           <rewrite>
+             <ingress>
+               <tag>
+                 <pop>1</pop>
+                 <mode>symmetric</mode>
+               </tag>
+             </ingress>
+           </rewrite>
+         </GigabitEthernet>
+       </GigabitEthernet-subinterface>
+     </interface>
+
+     <l2vpn xmlns="http://tail-f.com/ned/cisco-ios-xr" tags="merge">
+        <pw-class>
+          <name>MPLS</name>
+        </pw-class>
+        <xconnect>
+          <group>
+            <name>CarrierEthernet</name>
+            <p2p>
+              <name>{$vplsID}</name>
+              <interface>
+                <name>GigabitEthernet{$remoteInterface}</name>
+              </interface>
+              <neighbor>
+                <address>{$originNodeIP}</address>
+                <pw-id>{$pwID}</pw-id>
+                <ip-version>ipv4</ip-version>
+              </neighbor>
+            </p2p>
+          </group>
+        </xconnect>
+      </l2vpn>
+      </config>
+      </device>
+  </devices>
+</config-template>
